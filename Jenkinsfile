@@ -5,7 +5,7 @@ pipeline {
         maven 'Maven3'
     }
     environment {
-	    APP_NAME = "register-app-pipeline"
+	    APP_NAME = "Webflix"
             RELEASE = "1.0.0"
             DOCKER_USER = "somdock7"
             DOCKER_PASS = 'dockerhub'
@@ -71,5 +71,20 @@ pipeline {
                 }
             }
        }
+       stage("Trivy Scan") {
+           steps {
+               script {
+	            sh ('docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image somdock7/Webflix:latest --no-progress --scanners vuln  --exit-code 0 --severity HIGH,CRITICAL --format table')
+               }
+           }
+       }
+       stage ('Cleanup Artifacts') {
+           steps {
+               script {
+                    sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker rmi ${IMAGE_NAME}:latest"
+               }
+          }
+       }	    
     }       
 }
